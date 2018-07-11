@@ -11,6 +11,9 @@
     <modules>
         <module>tools-domain</module>
         <module>tools-pool</module>
+        <module>tools-sftp</module>
+        <module>tools-cryption</module>
+        <module>tools-kyro</module>
     </modules>
 
 <dependencies>
