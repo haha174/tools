@@ -4,11 +4,11 @@ import nyla.solutions.global.util.Cryption;
 
 public class CryptionUtil {
     public static String getEncryptionString(String str) {
-        Cryption cryption = new Cryption ();
+        Cryption cryption = new Cryption();
         try {
-            return Cryption.CRYPTION_PREFIX + cryption.encryptText ( str );
+            return Cryption.CRYPTION_PREFIX + cryption.encryptText(str);
         } catch (Exception e) {
-            e.printStackTrace ();
+            e.printStackTrace();
         }
         return str;
     }
@@ -17,7 +17,7 @@ public class CryptionUtil {
         if (flag == true) {
             str = Cryption.CRYPTION_PREFIX + str;
         }
-        return Cryption.interpret ( str );
+        return Cryption.interpret(str);
 
     }
 }

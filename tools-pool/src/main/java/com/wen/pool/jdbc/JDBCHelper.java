@@ -3,29 +3,30 @@ package com.wen.pool.jdbc;
 
 
 import com.wen.pool.exception.JDBCException;
-import com.wen.tools.domain.config.IConstants;
+import com.wen.pool.domain.IConstants;
 import com.wen.tools.domain.utils.GetValueUtils;
 import com.wen.tools.domain.utils.PropertiesUtil;
 
 import java.sql.*;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class JDBCHelper {
 
     // 数据库连接池
-    private ConcurrentLinkedQueue<Connection> datasource = new ConcurrentLinkedQueue<Connection>() ;
-
+    private ConcurrentLinkedQueue<Connection> datasource = new ConcurrentLinkedQueue<>() ;
+    private static Properties properties=new PropertiesUtil().getProperties("") ;
 
     static {
         try {
             
-            String driver = PropertiesUtil.getProperty(IConstants.JDBC.JDBC_DRIVER);
-            maxNum = GetValueUtils.getIntegerOrElse(PropertiesUtil.getProperty(IConstants.JDBC.JDBC_DATASOURCE_MAX_SIZE), 20);
-            url = PropertiesUtil.getProperty(IConstants.JDBC.JDBC_URL);
-            user = PropertiesUtil.getProperty(IConstants.JDBC.JDBC_USER);
-            password = PropertiesUtil.getProperty(IConstants.JDBC.JDBC_PASSWORD);
-            getConnectionTime = GetValueUtils.getIntegerOrElse(PropertiesUtil.getProperty(IConstants.JDBC.JDBC_DATASOURCE_RETEY_TIME), 3);
+            String driver = properties.getProperty(IConstants.JDBC.JDBC_DRIVER);
+            maxNum = GetValueUtils.getIntegerOrElse(properties.getProperty(IConstants.JDBC.JDBC_DATASOURCE_MAX_SIZE), 20);
+            url = properties.getProperty(IConstants.JDBC.JDBC_URL);
+            user = properties.getProperty(IConstants.JDBC.JDBC_USER);
+            password = properties.getProperty(IConstants.JDBC.JDBC_PASSWORD);
+            getConnectionTime = GetValueUtils.getIntegerOrElse(properties.getProperty(IConstants.JDBC.JDBC_DATASOURCE_RETEY_TIME), 3);
             Class.forName(driver);
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,7 +59,7 @@ public class JDBCHelper {
      * 构造方法加载连接池
      */
     private JDBCHelper() {
-        int datasourceSize = GetValueUtils.getIntegerOrElse(PropertiesUtil.getProperty(IConstants.JDBC.JDBC_DATASOURCE_SIZE), 1);
+        int datasourceSize = GetValueUtils.getIntegerOrElse(properties.getProperty(IConstants.JDBC.JDBC_DATASOURCE_SIZE), 1);
         try {
             initDataSourcre(datasourceSize);
         }catch (Exception e){
@@ -84,7 +85,7 @@ public class JDBCHelper {
             int time = 0;
             while (datasource.size() == 0) {
                 time++;
-                if (time > getConnectionTime && num <= maxNum) {
+                if (time < getConnectionTime && num <= maxNum) {
                     initDataSourcre(1);
                 } else {
                     Thread.sleep(100);

@@ -1,4 +1,4 @@
-package com.wen.tools.domain.config;
+package com.wen.pool.domain;
 
 public interface IConstants {
     interface JDBC {
@@ -11,9 +11,6 @@ public interface IConstants {
         String JDBC_DATASOURCE_RETEY_TIME = "jdbc.datasource.retry.time";
     }
 
-    interface CONFIG {
-        String   CONFIG_PROPERTIES="pool.properties";
-    }
 
     interface PATTERN {
         String PATTERN_CHECK_NUMBER = "^\\s*[0-9]+\\s*$";

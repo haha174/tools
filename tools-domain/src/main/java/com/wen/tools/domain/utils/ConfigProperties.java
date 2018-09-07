@@ -1,15 +1,18 @@
 package com.wen.tools.domain.utils;
 
+import com.wen.tools.domain.config.IConstantsDomain;
 
 import java.io.InputStream;
 import java.util.Properties;
 
-public class PropertiesUtil {
+public class ConfigProperties {
+    private static Properties props = null;
 
-    private Properties props = null;
+    static {
+        props = getProperties(IConstantsDomain.ENV_PROPERTIES_FILE);
+    }
 
-
-    public Properties getProperties(String name) {
+    private static Properties getProperties(String name) {
         Properties pro = new Properties();
         try {
             ClassLoader classLoader = PropertiesUtil.class.getClassLoader();
@@ -22,7 +25,7 @@ public class PropertiesUtil {
         return pro;
     }
 
-    public String getProperty(String key) {
+    public static String getProperty(String key) {
         return props.getProperty(key);
     }
 }
