@@ -16,7 +16,7 @@ public class JDBCHelper {
 
     // 数据库连接池
     private ConcurrentLinkedQueue<Connection> datasource = new ConcurrentLinkedQueue<>() ;
-    private static Properties properties=new PropertiesUtil().getProperties("") ;
+    private static Properties properties=new PropertiesUtil().getProperties("pool.properties") ;
 
     static {
         try {
