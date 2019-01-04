@@ -2,19 +2,18 @@ package com.wen.tools.json.util;
 
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
 import java.util.Map;
-import java.util.TreeMap;
 
-public final class JsonObject {
-    private Map<String, Object> values = new TreeMap();
+public final class JsonObject extends JSONObject {
 
     private JsonObject() {
     }
 
     public static final JsonObject create() {
+
         JsonObject jo = new JsonObject();
-        jo.values = new TreeMap();
         return jo;
     }
 
@@ -22,7 +21,7 @@ public final class JsonObject {
     public final JsonObject append(String jsonValue) {
         Map m = JSON.parseObject(jsonValue, Map.class);
         if (m != null) {
-            this.values.putAll(m);
+            super.getInnerMap().putAll(m);
         }
 
         return this;
@@ -30,7 +29,7 @@ public final class JsonObject {
 
     public final JsonObject append(JsonObject value) {
         if (value != null) {
-            this.values.putAll(value.values);
+           super.getInnerMap().putAll(value.toMap());
         }
 
         return this;
@@ -38,31 +37,31 @@ public final class JsonObject {
 
 
     public JsonObject append(String key, String value) {
-        this.values.put(key, value);
+        super.getInnerMap().put(key, value);
         return this;
     }
 
     public JsonObject append(String key, Object value) {
-        this.values.put(key, value);
+        super.getInnerMap().put(key, value);
         return this;
     }
 
     public String getValue(String key) {
-        Object o = this.values.get(key);
+        Object o = super.getInnerMap().get(key);
         return o == null ? null : String.valueOf(o);
     }
 
     public <T> T getValue(String key, Class<T> ct) {
-        T o = (T) this.values.get(key);
+        T o = (T)super.getInnerMap().get(key);
         return o == null ? null : o;
     }
 
     public String toJson() {
-        return JSON.toJSONString(this.values);
+        return JSON.toJSONString(super.toJSONString());
     }
 
     public Map<String, Object> toMap() {
-        return this.values;
+        return super.getInnerMap();
     }
 
     public String toString() {

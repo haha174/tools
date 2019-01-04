@@ -12,6 +12,8 @@
     <artifactId>tools-pool</artifactId>
 
     <dependencies>
+
+
         <dependency>
             <groupId>com.wen.tools</groupId>
             <artifactId>tools-domain</artifactId>

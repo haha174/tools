@@ -7,7 +7,8 @@ public class JsonTest {
         JsonObject jsonObject=JsonObject.create();
         jsonObject.append("{\"id\":1}");
         jsonObject.append("name",2);
-        System.out.println(jsonObject.getValue("id"));
-        System.out.println(jsonObject.toJson());
+        System.out.println(jsonObject.containsKey("name"));
+        jsonObject=JsonObject.create();
+        System.out.println(jsonObject.containsKey("name"));
     }
 }
