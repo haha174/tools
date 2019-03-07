@@ -16,6 +16,7 @@
         <module>tools-kyro</module>
         <module>tools-json</module>
         <module>tools-cumumber</module>
+        <module>tools-logger</module>
     </modules>
 
 <dependencies>
