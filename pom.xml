@@ -15,6 +15,7 @@
         <module>tools-cryption</module>
         <module>tools-kyro</module>
         <module>tools-json</module>
+        <module>tools-cumumber</module>
     </modules>
 
 <dependencies>
