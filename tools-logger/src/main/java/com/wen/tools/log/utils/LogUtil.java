@@ -30,7 +30,7 @@ public class LogUtil {
         init();
     }
     public static void init(){
-        coreLog = LogManager.getLogger("com.wen");
+        coreLog = LogManager.getLogger("com.wen.tools.log");
 
     }
     public static Logger getCoreLog() {

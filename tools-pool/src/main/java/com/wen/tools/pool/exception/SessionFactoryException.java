@@ -1,4 +1,4 @@
-package com.wen.pool.exception;
+package com.wen.tools.pool.exception;
 
 /**
  * @author : WChen129
@@ -8,7 +8,6 @@ public class SessionFactoryException extends RuntimeException {
     public SessionFactoryException(String ression){
         super(ression);
     }
-
     public SessionFactoryException(String ression ,Throwable cause){
         super(ression,cause);
     }

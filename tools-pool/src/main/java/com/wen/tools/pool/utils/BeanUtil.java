@@ -1,6 +1,6 @@
-package com.wen.pool.utils;
+package com.wen.tools.pool.utils;
 
-import com.wen.pool.annotation.FieldName;
+import com.wen.tools.pool.annotation.FieldName;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -69,5 +69,7 @@ public class BeanUtil {
         }
         return  Long.parseLong ( sb.toString () );
     }
+
+
 
 }

@@ -1,6 +1,8 @@
 package com.wen.tools.domain.utils;
 
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -14,6 +16,9 @@ public class PropertiesUtil {
         try {
             ClassLoader classLoader = PropertiesUtil.class.getClassLoader();
             InputStream inputStream = classLoader.getResourceAsStream(name);
+            if(inputStream==null){
+                inputStream=new FileInputStream(new File(name));
+            }
             pro.load(inputStream);
             inputStream.close();
         } catch (Exception e) {

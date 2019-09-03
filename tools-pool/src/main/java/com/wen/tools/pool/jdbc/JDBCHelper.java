@@ -1,32 +1,46 @@
-package com.wen.pool.jdbc;
+package com.wen.tools.pool.jdbc;
 
 
 
-import com.wen.pool.exception.JDBCException;
-import com.wen.pool.domain.IConstants;
+import com.wen.tools.pool.entry.DataSource;
+import com.wen.tools.pool.exception.JDBCException;
+import com.wen.tools.pool.domain.ToolsPoolIConstants;
+import com.wen.tools.pool.exception.SessionFactoryException;
+import com.wen.tools.cryption.CryptionUtil;
 import com.wen.tools.domain.utils.GetValueUtils;
 import com.wen.tools.domain.utils.PropertiesUtil;
+import com.wen.tools.log.utils.LogUtil;
 
 import java.sql.*;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.LongAdder;
 
 public class JDBCHelper {
 
     // 数据库连接池
-    private ConcurrentLinkedQueue<Connection> datasource = new ConcurrentLinkedQueue<>() ;
-    private static Properties properties=new PropertiesUtil().getProperties("pool.properties") ;
+    private static int maxNum = 20;
+    private static String url;
+    private static String user;
+    private static String password;
+    private static int GET_CONNECTION_MAX_RETEY_TIMES;
+    private static int RETEY_SLEEP_TIMES;
+    private LongAdder current_queue_size=new LongAdder();
 
+    private ConcurrentLinkedQueue<Connection> connectionQueue = new ConcurrentLinkedQueue<>() ;
+    private static Properties properties=new PropertiesUtil().getProperties(System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE)==null?ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE:System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE)) ;
     static {
         try {
-            
-            String driver = properties.getProperty(IConstants.JDBC.JDBC_DRIVER);
-            maxNum = GetValueUtils.getIntegerOrElse(properties.getProperty(IConstants.JDBC.JDBC_DATASOURCE_MAX_SIZE), 20);
-            url = properties.getProperty(IConstants.JDBC.JDBC_URL);
-            user = properties.getProperty(IConstants.JDBC.JDBC_USER);
-            password = properties.getProperty(IConstants.JDBC.JDBC_PASSWORD);
-            getConnectionTime = GetValueUtils.getIntegerOrElse(properties.getProperty(IConstants.JDBC.JDBC_DATASOURCE_RETEY_TIME), 3);
+            String driver = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DRIVER);
+            maxNum = GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_MAX_SIZE), 20);
+            url = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_URL);
+            user = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_USER);
+            password = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_PASSWORD);
+            password=CryptionUtil.getDecryptionString(password);
+            LogUtil.getCoreLog().info("init JDBCHelper,driver:{},url:{},user:",driver,url,user);
+            GET_CONNECTION_MAX_RETEY_TIMES = GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_GET_CONNECTION_MAX_RETEY_TIMES), 3);
+            RETEY_SLEEP_TIMES=GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_GET_CONNECTION_RETEY_SLEEP_TIMES), 1000);
             Class.forName(driver);
         } catch (Exception e) {
             e.printStackTrace();
@@ -45,33 +59,49 @@ public class JDBCHelper {
      * @return 单例
      */
     public static JDBCHelper getInstance() {
-        if (instance == null) {
-            synchronized (JDBCHelper.class) {
-                if (instance == null) {
-                    instance = new JDBCHelper();
-                }
-            }
-        }
-        return instance;
+        return Singleton.INSTANCE.getInstance ();
     }
+
+    private enum Singleton {
+        INSTANCE;
+        private JDBCHelper singleton;
+
+        Singleton() {
+            singleton = new JDBCHelper ();
+        }
+
+        public JDBCHelper getInstance() {
+            return singleton;
+        }
+    }
+
 
     /**
      * 构造方法加载连接池
      */
     private JDBCHelper() {
-        int datasourceSize = GetValueUtils.getIntegerOrElse(properties.getProperty(IConstants.JDBC.JDBC_DATASOURCE_SIZE), 1);
+        int datasourceSize = GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_SIZE), 1);
         try {
+            current_queue_size.increment();
             initDataSourcre(datasourceSize);
+            LogUtil.getCoreLog().info("init connection successfully");
         }catch (Exception e){
-            throw new JDBCException (e.getMessage (),e.getCause ());
+            e.printStackTrace();
+            throw new JDBCException (e);
         }
     }
 
     private synchronized void initDataSourcre(int datasourceSize) throws Exception {
         for (int i = 0; i < datasourceSize; i++) {
-            Connection conn = DriverManager.getConnection(url, user, password);
-            datasource.add(conn);
-            addNum(1);
+             try {
+                 Connection conn = DriverManager.getConnection(url, user, password);
+                 connectionQueue.add(conn);
+             }catch (Exception e){
+                 e.printStackTrace();
+                 current_queue_size.decrement();
+                 throw  new JDBCException("create connection error");
+             }
+            LogUtil.getCoreLog().info("create a new Connection successfully, now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
         }
     }
 
@@ -80,37 +110,43 @@ public class JDBCHelper {
      * 有可能，你去获取的时候，这个时候，连接都被用光了，你暂时获取不到数据库连接
      * 所以我们要自己编码实现一个简单的等待机制，去等待获取到数据库连接
      */
-    public synchronized Connection getConnection() {
+    public  DataSource getConnection() {
         try {
             int time = 0;
-            while (datasource.size() == 0) {
-                time++;
-                if (time < getConnectionTime && num <= maxNum) {
+            while (connectionQueue.size() == 0&&time < GET_CONNECTION_MAX_RETEY_TIMES) {
+                if (current_queue_size.longValue() < maxNum) {
+                    current_queue_size.increment();
                     initDataSourcre(1);
                 } else {
-                    Thread.sleep(100);
+                    time++;
+                    Thread.sleep(RETEY_SLEEP_TIMES);
                 }
             }
-            Connection connection = datasource.poll();
-            if (connection.isClosed()) {
-                reduceNum(1);
+            if(time>=GET_CONNECTION_MAX_RETEY_TIMES){
+                throw new SessionFactoryException("get connection time out");
+            }
+            Connection connection = connectionQueue.poll();
+            if (connection==null||connection.isClosed()) {
+                current_queue_size.decrement();
                 return getConnection();
             }
             connection.setAutoCommit(true);
-            return connection;
+            LogUtil.getCoreLog().info("get a connection successfully,now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
+            return new DataSource(connection);
         } catch (Exception e) {
-            reduceNum(1);
-            return getConnection();
+           e.printStackTrace();
+           throw new SessionFactoryException("get connection error");
         }
     }
 
     /**
      * 归还数据库连接
-     * @param connection
+     * @param dataSource
      */
-    public synchronized void BackConnection(Connection connection) {
-        datasource.add(connection);
-        connection=null;
+    public synchronized void backConnection(DataSource dataSource) {
+        connectionQueue.add(dataSource.getConnection());
+        dataSource.setConnection(null);
+        LogUtil.getCoreLog().info("back a connection successfully, now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
     }
 
 
@@ -122,15 +158,14 @@ public class JDBCHelper {
      */
     public int executeUpdate(String sql, Object[] params) {
         int rtn=0;
-        Connection connection=getConnection();
+        DataSource source=getConnection();
         try {
-            PreparedStatement  pstmt =getPrepareStatementSql(connection,sql,params);
-            rtn = pstmt.executeUpdate();
-        }catch (SQLException e){
+            executeUpdate(source,sql,params);
+        }catch (JDBCException e){
             e.printStackTrace();
             throw new JDBCException (e.getMessage(),e.getCause());
         }finally {
-            BackConnection(connection);
+            backConnection(source);
         }
         return rtn;
     }
@@ -141,10 +176,10 @@ public class JDBCHelper {
      * @param sql
      * @return 影响的行数
      */
-    public int executeUpdate(Connection connection,String sql, Object[] params) {
+    public int executeUpdate( DataSource source,String sql, Object[] params) {
         int rtn=0;
         try {
-            PreparedStatement  pstmt =getPrepareStatementSql(connection,sql,params);
+            PreparedStatement  pstmt =getPrepareStatementSql(source.getConnection(),sql,params);
             rtn = pstmt.executeUpdate();
         }catch (SQLException e){
             e.printStackTrace();
@@ -160,7 +195,8 @@ public class JDBCHelper {
      * @param params
      */
     public ResultSet executeQuery(String sql, Object[] params){
-        Connection connection=getConnection();
+        DataSource source=getConnection();
+        Connection connection=source.getConnection();
         ResultSet rs=null;
         try {
             PreparedStatement  pstmt =getPrepareStatementSql(connection,sql,params);
@@ -168,10 +204,12 @@ public class JDBCHelper {
         }catch (SQLException e){
             e.printStackTrace();
         }finally {
-            BackConnection(connection);
+            backConnection(source);
         }
         return rs;
     }
+
+
 
     /**
      *
@@ -185,7 +223,7 @@ public class JDBCHelper {
         PreparedStatement  pstmt = connection.prepareStatement(sql);
         if(params!=null&&params.length>0){
             for (int i = 0; i < params.length; i++) {
-                pstmt.setObject(i + 1, params[i]);
+                pstmt.setObject(i+1, params[i]);
             }
         }
         return pstmt;
@@ -229,20 +267,5 @@ public class JDBCHelper {
         return rtn;
     }
 
-    private int num;
-
-    private synchronized void addNum(int num) {
-        this.num += num;
-    }
-
-    private synchronized void reduceNum(int num) {
-        this.num -= num;
-    }
-
-    private static int maxNum = 20;
-    private static String url;
-    private static String user;
-    private static String password;
-    private static int getConnectionTime;
 
 }
