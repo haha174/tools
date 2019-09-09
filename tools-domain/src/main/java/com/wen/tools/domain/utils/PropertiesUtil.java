@@ -8,10 +8,7 @@ import java.util.Properties;
 
 public class PropertiesUtil {
 
-    private Properties props = null;
-
-
-    public Properties getProperties(String name) {
+    public static Properties getProperties(String name) {
         Properties pro = new Properties();
         try {
             ClassLoader classLoader = PropertiesUtil.class.getClassLoader();
@@ -25,9 +22,5 @@ public class PropertiesUtil {
             e.printStackTrace();
         }
         return pro;
-    }
-
-    public String getProperty(String key) {
-        return props.getProperty(key);
     }
 }

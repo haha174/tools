@@ -1,6 +1,6 @@
 package com.wen.tools.domain.utils;
 
-import com.wen.tools.domain.config.DomainIConstants;
+import com.wen.tools.domain.config.IConstantsDomain;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -9,7 +9,7 @@ public class ConfigProperties {
     private static Properties props = null;
 
     static {
-        props = getProperties(DomainIConstants.ENV_PROPERTIES_FILE);
+        props = getProperties(IConstantsDomain.ENV_PROPERTIES_FILE);
     }
 
     private static Properties getProperties(String name) {
