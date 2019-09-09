@@ -32,7 +32,7 @@ public class CarrierUtils {
      * @param telPhone
      * @return
      */
-    public static int getCarrierByTel(String telPhone){
+    public static int getCarrierIdByTel(String telPhone){
         boolean b1 = StringUtils.isBlank(telPhone) ? false : match(CHINA_MOBILE_PATTERN, telPhone);
         if (b1) {
             return 1;
@@ -48,6 +48,27 @@ public class CarrierUtils {
         return 0;
     }
 
+    /**
+     * 0、未知 1、移动 2、联通 3、电信
+     * @param telPhone
+     * @return
+     */
+    public static String getCarrierNameByTel(String telPhone){
+        int carrierId=0;
+        boolean b1 = StringUtils.isBlank(telPhone) ? false : match(CHINA_MOBILE_PATTERN, telPhone);
+        if (b1) {
+            carrierId= 1;
+        }
+        b1 =  StringUtils.isBlank(telPhone)  ? false : match(CHINA_UNICOM_PATTERN, telPhone);
+        if (b1) {
+            carrierId= 2;
+        }
+        b1 =  StringUtils.isBlank(telPhone)  ? false : match(CHINA_TELECOM_PATTERN, telPhone);
+        if (b1) {
+            carrierId= 3;
+        }
+        return IConstantsDomain.ChinaMobileType.CHINA_MOBILE_TYPE[carrierId];
+    }
     /**
      * 匹配函数
      * @param regex
