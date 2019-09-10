@@ -4,10 +4,9 @@ public interface IConstantsDomain {
     String ENV_PROPERTIES_FILE = "env.properties";
 
     interface DefaultValue {
-
         String NO_VALUE_KEY = "__NO_VALUE_KEY";
         String DEFAULT_UNDEFINED = "<undefined>";
-
+        String DEFAULT_UNDEFINED_CN = "未知";
     }
 
     interface COMMON_CONFIG {
@@ -29,6 +28,6 @@ public interface IConstantsDomain {
         String CHINA_UNICOM_PATTERN_STRING = "(^1(3[0-2]|4[5]|5[56]|7[6]|8[56])\\d{8}$)|(^1709\\d{7}$)";
         String CHINA_MOBILE_PATTERN_STRING = "(^1(3[4-9]|4[7]|5[0-27-9]|7[8]|8[2-478])\\d{8}$)|(^1705\\d{7}$)";
         // 0、未知 1、移动 2、联通 3、电信
-        String CHINA_MOBILE_TYPE[] = {"未知", "移动", "联通", "电信"};
+        String CHINA_MOBILE_TYPE[] = {DefaultValue.DEFAULT_UNDEFINED_CN, "移动", "联通", "电信"};
     }
 }
