@@ -8,7 +8,7 @@ import com.wen.tools.pool.domain.ToolsPoolIConstants;
 import com.wen.tools.pool.exception.SessionFactoryException;
 import com.wen.tools.cryption.CryptionUtil;
 import com.wen.tools.domain.utils.GetValueUtils;
-import com.wen.tools.domain.utils.PropertiesUtil;
+import com.wen.tools.domain.utils.ParameterUtils;
 import com.wen.tools.log.utils.LogUtil;
 
 import java.sql.*;
@@ -29,9 +29,10 @@ public class JDBCHelper {
     private LongAdder current_queue_size=new LongAdder();
 
     private ConcurrentLinkedQueue<Connection> connectionQueue = new ConcurrentLinkedQueue<>() ;
-    private static Properties properties=new PropertiesUtil().getProperties(System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE)==null?ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE:System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE)) ;
+    private static Properties properties=null;
     static {
         try {
+            properties=ParameterUtils.fromPropertiesFile(System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE)==null?ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE:System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE)) .getProperties();
             String driver = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DRIVER);
             maxNum = GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_MAX_SIZE), 20);
             url = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_URL);
@@ -44,6 +45,7 @@ public class JDBCHelper {
             Class.forName(driver);
         } catch (Exception e) {
             e.printStackTrace();
+           throw  new RuntimeException(e);
         }
     }
 

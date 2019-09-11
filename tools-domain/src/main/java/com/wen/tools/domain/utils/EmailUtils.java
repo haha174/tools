@@ -1,41 +1,39 @@
 package com.wen.tools.domain.utils;
 
+import com.wen.tools.domain.config.IConstantsDomain;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * Created by li on 2019/1/5.
+ */
 public class EmailUtils {
 
     /**
-     * 网易邮箱 @163.com @126.com
-     移动邮箱 @139.com
-     搜狐邮箱 @sohu.com
-     qq邮箱  @qq.com
-     189邮箱 @189.cn
-     tom邮箱 @tom.com
-     阿里邮箱 @aliyun.com
-     新浪邮箱 @sina.com
-     等等
      * @param email
      * @return
      */
-    public static String getEmailtypeBy(String email){
-        String emailtye = "其他邮箱用户";
-        if(StringUtils.endsWith(email,("@163.com"))||StringUtils.endsWith(email,("@126.com"))){
-            emailtye = "网易邮箱用户";
-        }else if (email.contains("@139.com")){
-            emailtye = "移动邮箱用户";
-        }else if (email.contains("@sohu.com")){
-            emailtye = "搜狐邮箱用户";
-        }else if (email.contains("@qq.com")){
-            emailtye = "qq邮箱用户";
-        }else if (email.contains("@189.cn")){
-            emailtye = "189邮箱用户";
-        }else if (email.contains("@tom.com")){
-            emailtye = "tom邮箱用户";
-        }else if (email.contains("@aliyun.com")){
-            emailtye = "阿里邮箱用户";
-        }else if (email.contains("@sina.com")){
-            emailtye = "新浪邮箱用户";
+    public static String getEmailCompanyName(String email){
+        String emailType = IConstantsDomain.DefaultValue.DEFAULT_UNDEFINED_CN;
+        if(StringUtils.endsWith(email,"@163.com")||StringUtils.endsWith(email,"@126.com")){
+            emailType = "网易邮箱";
+        }else if (StringUtils.endsWith(email,"@139.com")){
+            emailType = "移动邮箱";
+        }else if (StringUtils.endsWith(email,"@sohu.com")){
+            emailType = "搜狐邮箱";
+        }else if (StringUtils.endsWith(email,"@qq.com")){
+            emailType = "qq邮箱";
+        }else if (StringUtils.endsWith(email,"@189.cn")){
+            emailType = "189邮箱";
+        }else if (StringUtils.endsWith(email,"@tom.com")){
+            emailType = "tom邮箱";
+        }else if (StringUtils.endsWith(email,"@aliyun.com")){
+            emailType = "阿里邮箱";
+        }else if (StringUtils.endsWith(email,"@sina.com")){
+            emailType = "新浪邮箱";
         }
-        return emailtye;
+        else if (StringUtils.endsWith(email,"@google.com")){
+            emailType = "Google邮箱";
+        }
+        return emailType;
     }
 }

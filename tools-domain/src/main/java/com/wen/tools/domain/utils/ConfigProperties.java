@@ -15,7 +15,7 @@ public class ConfigProperties {
     private static Properties getProperties(String name) {
         Properties pro = new Properties();
         try {
-            ClassLoader classLoader = PropertiesUtil.class.getClassLoader();
+            ClassLoader classLoader = ConfigProperties.class.getClassLoader();
             InputStream inputStream = classLoader.getResourceAsStream(name);
             pro.load(inputStream);
             inputStream.close();
