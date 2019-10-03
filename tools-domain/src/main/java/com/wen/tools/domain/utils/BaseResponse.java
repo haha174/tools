@@ -42,7 +42,7 @@ public class BaseResponse
     this.statusMsg = statusMsg;
   }
 
-  public boolean isSuccess(){
+  public boolean ifSuccess(){
     return this.statusCode== IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS;
   }
 
