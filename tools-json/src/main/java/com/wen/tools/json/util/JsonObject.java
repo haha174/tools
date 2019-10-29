@@ -57,7 +57,7 @@ public final class JsonObject extends JSONObject {
     }
 
     public String toJson() {
-        return JSON.toJSONString(super.toJSONString());
+        return super.toJSONString();
     }
 
     public Map<String, Object> toMap() {
