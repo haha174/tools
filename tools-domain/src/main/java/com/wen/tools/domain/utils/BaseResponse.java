@@ -3,69 +3,70 @@ package com.wen.tools.domain.utils;
 
 import com.wen.tools.domain.config.IConstantsDomain;
 
-public class BaseResponse
-{
+public class BaseResponse {
 
-  private int statusCode ;
-  private String statusMsg;
+    private int statusCode;
+    private String statusMsg;
+    public static final int RESPONSE_STATUS_CODE_ERROR = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_404;
+    public static final int RESPONSE_STATUS_CODE_404 = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_404;
+    public static final int RESPONSE_STATUS_CODE_400 = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_400;
+    public static final int RESPONSE_STATUS_CODE_SUCCESS = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS;
+    ;
+    public static final String RESPONSE_STATUS_CODE_SUCCESS_MSG = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS_MSG;
+    public static final String RESPONSE_STATUS_CODE_FAILED_MSG = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_FAILED_MSG;
+    public static final String RESPONSE_STATUS_CODE_ERROR_MSG = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR_MSG;
 
-  public BaseResponse()
-  {
-    statusCode = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS;
-    statusMsg = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS_MSG;
-  }
+    public BaseResponse() {
+        statusCode = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS;
+        statusMsg = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS_MSG;
+    }
 
-  public BaseResponse(int statusCode, String statusMsg)
-  {
-    super();
-    this.statusCode = statusCode;
-    this.statusMsg = statusMsg;
-  }
+    public BaseResponse(int statusCode, String statusMsg) {
+        super();
+        this.statusCode = statusCode;
+        this.statusMsg = statusMsg;
+    }
 
-  public int getStatusCode()
-  {
-    return statusCode;
-  }
+    public int getStatusCode() {
+        return statusCode;
+    }
 
-  public void setStatusCode(int statusCode)
-  {
-    this.statusCode = statusCode;
-  }
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
 
-  public String getStatusMsg()
-  {
-    return statusMsg;
-  }
+    public String getStatusMsg() {
+        return statusMsg;
+    }
 
-  public void setStatusMsg(String statusMsg)
-  {
-    this.statusMsg = statusMsg;
-  }
+    public void setStatusMsg(String statusMsg) {
+        this.statusMsg = statusMsg;
+    }
 
-  public boolean ifSuccess(){
-    return this.statusCode== IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS;
-  }
+    public boolean ifSuccess() {
+        return this.statusCode == IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS;
+    }
 
-  public void switchErrorResponse(){
-    this.setStatusCode(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR);
-    this.setStatusMsg(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR_MSG);
-  }
+    public void switchErrorResponse() {
+        this.setStatusCode(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR);
+        this.setStatusMsg(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR_MSG);
+    }
 
-  public void switchFailResponse(){
-    this.setStatusCode(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR);
-    this.setStatusMsg(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_FAILED_MSG);
-  }
+    public void switchFailResponse() {
+        this.setStatusCode(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR);
+        this.setStatusMsg(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_FAILED_MSG);
+    }
 
-  public void switchSuccessResponse(){
-    this.setStatusCode(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS);
-    this.setStatusMsg(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS_MSG);
-  }
+    public void switchSuccessResponse() {
+        this.setStatusCode(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS);
+        this.setStatusMsg(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS_MSG);
+    }
 
-  @Override
-  public String toString() {
-    return "BaseResponse{" +
-            "statusCode=" + statusCode +
-            ", statusMsg='" + statusMsg + '\'' +
-            '}';
-  }
+    @Override
+    public String toString() {
+        return "BaseResponse{" +
+                "statusCode=" + statusCode +
+                ", statusMsg='" + statusMsg + '\'' +
+                '}';
+    }
 }
