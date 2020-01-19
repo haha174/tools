@@ -7,18 +7,18 @@ public class BaseResponse {
 
     private int statusCode;
     private String statusMsg;
-    public static final int RESPONSE_STATUS_CODE_ERROR = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_404;
-    public static final int RESPONSE_STATUS_CODE_404 = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_404;
-    public static final int RESPONSE_STATUS_CODE_400 = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_400;
-    public static final int RESPONSE_STATUS_CODE_SUCCESS = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS;
+    public static final int RESPONSE_STATUS_ERROR_CODE = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_ERROR_CODE;
+    public static final int RESPONSE_STATUS_404_CODE = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_404_CODE;
+    public static final int RESPONSE_STATUS_400_CODE = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_400_CODE;
+    public static final int RESPONSE_STATUS_SUCCESS_CODE = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_SUCCESS_CODE;
     ;
-    public static final String RESPONSE_STATUS_CODE_SUCCESS_MSG = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS_MSG;
-    public static final String RESPONSE_STATUS_CODE_FAILED_MSG = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_FAILED_MSG;
-    public static final String RESPONSE_STATUS_CODE_ERROR_MSG = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR_MSG;
+    public static final String RESPONSE_STATUS_SUCCESS_MSG = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_SUCCESS_MSG;
+    public static final String RESPONSE_STATUS_FAILED_MSG = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_FAILED_MSG;
+    public static final String RESPONSE_STATUS_ERROR_MSG = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_ERROR_MSG;
 
     public BaseResponse() {
-        statusCode = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS;
-        statusMsg = IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS_MSG;
+        statusCode = RESPONSE_STATUS_SUCCESS_CODE;
+        statusMsg = RESPONSE_STATUS_SUCCESS_MSG;
     }
 
     public BaseResponse(int statusCode, String statusMsg) {
@@ -44,22 +44,22 @@ public class BaseResponse {
     }
 
     public boolean ifSuccess() {
-        return this.statusCode == IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS;
+        return this.statusCode == IConstantsDomain.ResponseConfig.RESPONSE_STATUS_SUCCESS_CODE;
     }
 
     public void switchErrorResponse() {
-        this.setStatusCode(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR);
-        this.setStatusMsg(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR_MSG);
+        this.setStatusCode(RESPONSE_STATUS_ERROR_CODE);
+        this.setStatusMsg(RESPONSE_STATUS_ERROR_MSG);
     }
 
     public void switchFailResponse() {
-        this.setStatusCode(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_ERROR);
-        this.setStatusMsg(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_FAILED_MSG);
+        this.setStatusCode(RESPONSE_STATUS_ERROR_CODE);
+        this.setStatusMsg(RESPONSE_STATUS_FAILED_MSG);
     }
 
     public void switchSuccessResponse() {
-        this.setStatusCode(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS);
-        this.setStatusMsg(IConstantsDomain.ResponseConfig.RESPONSE_STATUS_CODE_SUCCESS_MSG);
+        this.setStatusCode(RESPONSE_STATUS_SUCCESS_CODE);
+        this.setStatusMsg(RESPONSE_STATUS_SUCCESS_MSG);
     }
 
     @Override

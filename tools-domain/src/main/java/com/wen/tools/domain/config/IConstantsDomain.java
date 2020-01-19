@@ -14,13 +14,13 @@ public interface IConstantsDomain {
     }
 
     interface ResponseConfig {
-        int RESPONSE_STATUS_CODE_ERROR = 500;
-        int RESPONSE_STATUS_CODE_404 = 404;
-        int RESPONSE_STATUS_CODE_400 = 400;
-        int RESPONSE_STATUS_CODE_SUCCESS = 200;
-        String RESPONSE_STATUS_CODE_SUCCESS_MSG = "success";
-        String RESPONSE_STATUS_CODE_FAILED_MSG = "failed";
-        String RESPONSE_STATUS_CODE_ERROR_MSG = "error";
+        int RESPONSE_STATUS_ERROR_CODE = 500;
+        int RESPONSE_STATUS_404_CODE = 404;
+        int RESPONSE_STATUS_400_CODE = 400;
+        int RESPONSE_STATUS_SUCCESS_CODE = 200;
+        String RESPONSE_STATUS_SUCCESS_MSG = "success";
+        String RESPONSE_STATUS_FAILED_MSG = "failed";
+        String RESPONSE_STATUS_ERROR_MSG = "error";
     }
 
     interface ChinaMobileType {
