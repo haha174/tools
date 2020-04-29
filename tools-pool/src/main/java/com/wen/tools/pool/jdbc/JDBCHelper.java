@@ -10,6 +10,7 @@ import com.wen.tools.cryption.CryptionUtil;
 import com.wen.tools.domain.utils.GetValueUtils;
 import com.wen.tools.domain.utils.ParameterUtils;
 import com.wen.tools.log.utils.LogUtil;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.LongAdder;
 
 public class JDBCHelper {
 
+   private static Logger logger=LogUtil.getCoreLog(JDBCHelper.class);
     // 数据库连接池
     private static int maxNum = 20;
     private static String url;
@@ -39,7 +41,7 @@ public class JDBCHelper {
             user = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_USER);
             password = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_PASSWORD);
             password=CryptionUtil.getDecryptionString(password);
-            LogUtil.getCoreLog().info("init JDBCHelper,driver:{},url:{},user:",driver,url,user);
+            logger.info("init JDBCHelper,driver:{},url:{},user:",driver,url,user);
             GET_CONNECTION_MAX_RETEY_TIMES = GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_GET_CONNECTION_MAX_RETEY_TIMES), 3);
             RETEY_SLEEP_TIMES=GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_GET_CONNECTION_RETEY_SLEEP_TIMES), 1000);
             Class.forName(driver);
@@ -86,7 +88,7 @@ public class JDBCHelper {
         try {
             current_queue_size.increment();
             initDataSourcre(datasourceSize);
-            LogUtil.getCoreLog().info("init connection successfully");
+            logger.info("init connection successfully");
         }catch (Exception e){
             e.printStackTrace();
             throw new JDBCException (e);
@@ -103,7 +105,7 @@ public class JDBCHelper {
                  current_queue_size.decrement();
                  throw  new JDBCException("create connection error");
              }
-            LogUtil.getCoreLog().info("create a new Connection successfully, now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
+            logger.info("create a new Connection successfully, now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
         }
     }
 
@@ -112,7 +114,7 @@ public class JDBCHelper {
      * 有可能，你去获取的时候，这个时候，连接都被用光了，你暂时获取不到数据库连接
      * 所以我们要自己编码实现一个简单的等待机制，去等待获取到数据库连接
      */
-    public  DataSource getConnection() {
+    public synchronized DataSource getConnection() {
         try {
             int time = 0;
             while (connectionQueue.size() == 0&&time < GET_CONNECTION_MAX_RETEY_TIMES) {
@@ -127,17 +129,20 @@ public class JDBCHelper {
             if(time>=GET_CONNECTION_MAX_RETEY_TIMES){
                 throw new SessionFactoryException("get connection time out");
             }
-            Connection connection = connectionQueue.poll();
-            if (connection==null||connection.isClosed()) {
+            // fix the server configured value of 'wait_timeout'
+            try {
+                Connection connection = connectionQueue.poll();
+                connection.setAutoCommit(true);
+                logger.info("get a connection successfully,now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
+                return new DataSource(connection);
+            }catch (Exception e){
+                logger.warn("get connection error try again");
                 current_queue_size.decrement();
                 return getConnection();
             }
-            connection.setAutoCommit(true);
-            LogUtil.getCoreLog().info("get a connection successfully,now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
-            return new DataSource(connection);
         } catch (Exception e) {
-           e.printStackTrace();
-           throw new SessionFactoryException("get connection error");
+            logger.error(e);
+           throw new SessionFactoryException(e);
         }
     }
 
@@ -148,7 +153,7 @@ public class JDBCHelper {
     public synchronized void backConnection(DataSource dataSource) {
         connectionQueue.add(dataSource.getConnection());
         dataSource.setConnection(null);
-        LogUtil.getCoreLog().info("back a connection successfully, now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
+        logger.info("back a connection successfully, now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
     }
 
 
