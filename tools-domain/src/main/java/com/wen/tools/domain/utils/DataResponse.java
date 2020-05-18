@@ -35,4 +35,8 @@ public class DataResponse<T> extends BaseResponse {
         setValue(t);
     }
 
+    @Override
+    public String toString() {
+        return "DataResponse{" + "statusCode=" + super.getStatusCode() + ", statusMsg='" +  super.getStatusMsg() +"',value='" + value +"'}";
+    }
 }

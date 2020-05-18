@@ -1,12 +1,11 @@
 package com.wen.tools.io.csv.writer;
 
 import com.alibaba.fastjson.JSON;
-import com.opencsv.CSVWriter;
 import com.opencsv.CSVWriterBuilder;
 import com.opencsv.ICSVWriter;
+import com.wen.tools.domain.utils.FileUtils;
 import com.wen.tools.io.domain.ToolsIOIConstants;
 import com.wen.tools.io.exception.ToolsIOException;
-import com.wen.tools.io.utils.FileUtils;
 import com.wen.tools.log.utils.LogUtil;
 
 import java.io.File;

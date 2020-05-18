@@ -18,6 +18,7 @@
         <module>tools-cumumber</module>
         <module>tools-logger</module>
         <module>tools-io</module>
+        <module>tools-scp</module>
     </modules>
     <properties>
         <tools.version>1.0-SNAPSHOT</tools.version>

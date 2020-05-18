@@ -8,7 +8,11 @@ public interface IConstantsDomain {
         String DEFAULT_UNDEFINED = "<undefined>";
         String DEFAULT_UNDEFINED_CN = "未知";
     }
-
+    interface SCP{
+        String USER_HOME_PATH=System.getProperty("user.home");
+        String DEFAULT_PRIVATE_KEY=USER_HOME_PATH+"/.ssh/id_rsa";
+        String DEFAULT_USER_NAME=System.getProperty("user.name");
+    }
     interface COMMON_CONFIG {
         String CHAR_SPOT = ".";
     }
