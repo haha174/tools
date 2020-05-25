@@ -6,6 +6,7 @@ public interface ToolsPoolIConstants {
     }
     interface JDBC {
         String JDBC_DRIVER = "jdbc.driver";
+        String AUTO_COMMIT = "jdbc.auto_commit";
         String JDBC_URL = "jdbc.url";
         String JDBC_USER = "jdbc.username";
         String JDBC_PASSWORD = "jdbc.password";

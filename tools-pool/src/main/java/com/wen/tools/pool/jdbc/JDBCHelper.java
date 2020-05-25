@@ -1,7 +1,6 @@
 package com.wen.tools.pool.jdbc;
 
 
-
 import com.wen.tools.pool.entry.DataSource;
 import com.wen.tools.pool.exception.JDBCException;
 import com.wen.tools.pool.domain.ToolsPoolIConstants;
@@ -20,34 +19,37 @@ import java.util.concurrent.atomic.LongAdder;
 
 public class JDBCHelper {
 
-   private static Logger logger=LogUtil.getCoreLog(JDBCHelper.class);
+    private static Logger logger = LogUtil.getCoreLog(JDBCHelper.class);
     // 数据库连接池
     private static int maxNum = 20;
     private static String url;
     private static String user;
     private static String password;
+    private static boolean autoCommit = true;
     private static int GET_CONNECTION_MAX_RETEY_TIMES;
     private static int RETEY_SLEEP_TIMES;
-    private LongAdder current_queue_size=new LongAdder();
+    private LongAdder current_queue_size = new LongAdder();
 
-    private ConcurrentLinkedQueue<Connection> connectionQueue = new ConcurrentLinkedQueue<>() ;
-    private static Properties properties=null;
+    private ConcurrentLinkedQueue<Connection> connectionQueue = new ConcurrentLinkedQueue<>();
+    private static Properties properties = null;
+
     static {
         try {
-            properties=ParameterUtils.fromPropertiesFile(System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE)==null?ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE:System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE)) .getProperties();
+            properties = ParameterUtils.fromPropertiesFile(System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE) == null ? ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE : System.getProperty(ToolsPoolIConstants.CONFIG.JDBC_POOL_CONFIG_GILE)).getProperties();
             String driver = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DRIVER);
             maxNum = GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_MAX_SIZE), 20);
             url = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_URL);
+            autoCommit = GetValueUtils.getBooleanOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.AUTO_COMMIT), true);
             user = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_USER);
             password = properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_PASSWORD);
-            password=CryptionUtil.getDecryptionString(password);
-            logger.info("init JDBCHelper,driver:{},url:{},user:",driver,url,user);
+            password = CryptionUtil.getDecryptionString(password);
+            logger.info("init JDBCHelper,driver:{},url:{},user:", driver, url, user);
             GET_CONNECTION_MAX_RETEY_TIMES = GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_GET_CONNECTION_MAX_RETEY_TIMES), 3);
-            RETEY_SLEEP_TIMES=GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_GET_CONNECTION_RETEY_SLEEP_TIMES), 1000);
+            RETEY_SLEEP_TIMES = GetValueUtils.getIntegerOrElse(properties.getProperty(ToolsPoolIConstants.JDBC.JDBC_DATASOURCE_GET_CONNECTION_RETEY_SLEEP_TIMES), 1000);
             Class.forName(driver);
         } catch (Exception e) {
             e.printStackTrace();
-           throw  new RuntimeException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -63,7 +65,7 @@ public class JDBCHelper {
      * @return 单例
      */
     public static JDBCHelper getInstance() {
-        return Singleton.INSTANCE.getInstance ();
+        return Singleton.INSTANCE.getInstance();
     }
 
     private enum Singleton {
@@ -71,7 +73,7 @@ public class JDBCHelper {
         private JDBCHelper singleton;
 
         Singleton() {
-            singleton = new JDBCHelper ();
+            singleton = new JDBCHelper();
         }
 
         public JDBCHelper getInstance() {
@@ -89,23 +91,23 @@ public class JDBCHelper {
             current_queue_size.increment();
             initDataSourcre(datasourceSize);
             logger.info("init connection successfully");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            throw new JDBCException (e);
+            throw new JDBCException(e);
         }
     }
 
     private synchronized void initDataSourcre(int datasourceSize) throws Exception {
         for (int i = 0; i < datasourceSize; i++) {
-             try {
-                 Connection conn = DriverManager.getConnection(url, user, password);
-                 connectionQueue.add(conn);
-             }catch (Exception e){
-                 e.printStackTrace();
-                 current_queue_size.decrement();
-                 throw  new JDBCException("create connection error");
-             }
-            logger.info("create a new Connection successfully, now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
+            try {
+                Connection conn = DriverManager.getConnection(url, user, password);
+                connectionQueue.add(conn);
+            } catch (Exception e) {
+                e.printStackTrace();
+                current_queue_size.decrement();
+                throw new JDBCException("create connection error");
+            }
+            logger.info("create a new Connection successfully, now contain connection total:{},avaliable:{}", current_queue_size.longValue(), connectionQueue.size());
         }
     }
 
@@ -117,7 +119,7 @@ public class JDBCHelper {
     public synchronized DataSource getConnection() {
         try {
             int time = 0;
-            while (connectionQueue.size() == 0&&time < GET_CONNECTION_MAX_RETEY_TIMES) {
+            while (connectionQueue.size() == 0 && time < GET_CONNECTION_MAX_RETEY_TIMES) {
                 if (current_queue_size.longValue() < maxNum) {
                     current_queue_size.increment();
                     initDataSourcre(1);
@@ -126,52 +128,61 @@ public class JDBCHelper {
                     Thread.sleep(RETEY_SLEEP_TIMES);
                 }
             }
-            if(time>=GET_CONNECTION_MAX_RETEY_TIMES){
+            if (time >= GET_CONNECTION_MAX_RETEY_TIMES) {
                 throw new SessionFactoryException("get connection time out");
             }
             // fix the server configured value of 'wait_timeout'
             try {
                 Connection connection = connectionQueue.poll();
-                connection.setAutoCommit(true);
-                logger.info("get a connection successfully,now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
-                return new DataSource(connection);
-            }catch (Exception e){
+                if (!connection.isClosed()) {
+                    if (autoCommit) {
+                        connection.setAutoCommit(true);
+                    }
+                    logger.info("get a connection successfully,now contain connection total:{},avaliable:{}", current_queue_size.longValue(), connectionQueue.size());
+                    return new DataSource(connection);
+                } else {
+                    logger.warn("get connection error try again caused closed");
+                    return getConnection();
+                }
+            } catch (Exception e) {
                 logger.warn("get connection error try again");
                 current_queue_size.decrement();
                 return getConnection();
             }
         } catch (Exception e) {
             logger.error(e);
-           throw new SessionFactoryException(e);
+            throw new SessionFactoryException(e);
         }
     }
 
     /**
      * 归还数据库连接
+     *
      * @param dataSource
      */
     public synchronized void backConnection(DataSource dataSource) {
         connectionQueue.add(dataSource.getConnection());
         dataSource.setConnection(null);
-        logger.info("back a connection successfully, now contain connection total:{},avaliable:{}",current_queue_size.longValue(),connectionQueue.size());
+        logger.info("back a connection successfully, now contain connection total:{},avaliable:{}", current_queue_size.longValue(), connectionQueue.size());
     }
 
 
     /**
      * 执行增删改SQL语句
      * 自动事务执行 执行update
+     *
      * @param sql
      * @return 影响的行数
      */
     public int executeUpdate(String sql, Object[] params) {
-        int rtn=0;
-        DataSource source=getConnection();
+        int rtn = 0;
+        DataSource source = getConnection();
         try {
-            executeUpdate(source,sql,params);
-        }catch (JDBCException e){
+            executeUpdate(source, sql, params);
+        } catch (JDBCException e) {
             e.printStackTrace();
-            throw new JDBCException (e.getMessage(),e.getCause());
-        }finally {
+            throw new JDBCException(e.getMessage(), e.getCause());
+        } finally {
             backConnection(source);
         }
         return rtn;
@@ -180,17 +191,18 @@ public class JDBCHelper {
     /**
      * 执行增删改SQL语句
      * 手动事务执行 执行update
+     *
      * @param sql
      * @return 影响的行数
      */
-    public int executeUpdate( DataSource source,String sql, Object[] params) {
-        int rtn=0;
+    public int executeUpdate(DataSource source, String sql, Object[] params) {
+        int rtn = 0;
         try {
-            PreparedStatement  pstmt =getPrepareStatementSql(source.getConnection(),sql,params);
+            PreparedStatement pstmt = getPrepareStatementSql(source.getConnection(), sql, params);
             rtn = pstmt.executeUpdate();
-        }catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
-            throw new JDBCException(e.getMessage(),e.getCause());
+            throw new JDBCException(e.getMessage(), e.getCause());
         }
         return rtn;
     }
@@ -198,39 +210,39 @@ public class JDBCHelper {
     /**
      * 执行查询SQL语句
      * 自动事务检索
+     *
      * @param sql
      * @param params
      */
-    public ResultSet executeQuery(String sql, Object[] params){
-        DataSource source=getConnection();
-        Connection connection=source.getConnection();
-        ResultSet rs=null;
+    public ResultSet executeQuery(String sql, Object[] params) {
+        DataSource source = getConnection();
+        Connection connection = source.getConnection();
+        ResultSet rs = null;
         try {
-            PreparedStatement  pstmt =getPrepareStatementSql(connection,sql,params);
-             rs=pstmt.executeQuery();
-        }catch (SQLException e){
+            PreparedStatement pstmt = getPrepareStatementSql(connection, sql, params);
+            rs = pstmt.executeQuery();
+        } catch (SQLException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             backConnection(source);
         }
         return rs;
     }
 
 
-
     /**
-     *
      * @param connection
      * @param sql
      * @param params
      * @return 带事务的编译
      * @throws SQLException
      */
-    private PreparedStatement getPrepareStatementSql(Connection connection,String sql, Object[] params)throws SQLException{
-        PreparedStatement  pstmt = connection.prepareStatement(sql);
-        if(params!=null&&params.length>0){
+    private PreparedStatement getPrepareStatementSql(Connection connection, String sql, Object[] params) throws
+            SQLException {
+        PreparedStatement pstmt = connection.prepareStatement(sql);
+        if (params != null && params.length > 0) {
             for (int i = 0; i < params.length; i++) {
-                pstmt.setObject(i+1, params[i]);
+                pstmt.setObject(i + 1, params[i]);
             }
         }
         return pstmt;
@@ -256,7 +268,7 @@ public class JDBCHelper {
      * @return 每条SQL语句影响的行数
      */
 
-    public int[] executeBatch( Connection conn,String sql, List<Object[]> paramsList) throws SQLException{
+    public int[] executeBatch(Connection conn, String sql, List<Object[]> paramsList) throws SQLException {
         int[] rtn = null;
         PreparedStatement pstmt = null;
         // 第一步：使用Connection对象，取消自动提交

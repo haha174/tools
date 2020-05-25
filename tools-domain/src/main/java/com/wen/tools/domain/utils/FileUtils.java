@@ -11,38 +11,28 @@ public class FileUtils {
 
 
     public static void copyFileUsingFileChannels(File source, File dest) throws IOException {
-        FileChannel inputChannel = null;
-        FileChannel outputChannel = null;
-        try {
-            inputChannel = new FileInputStream(source).getChannel();
-            outputChannel = new FileOutputStream(dest).getChannel();
+        try (    FileChannel inputChannel = new FileInputStream(source).getChannel();
+                 FileChannel outputChannel = new FileOutputStream(dest).getChannel()){
             outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-        } finally {
-            inputChannel.close();
-            outputChannel.close();
         }
     }
-    public static void copyFileUsingFileStreams(File source, File dest)  throws IOException {
-        InputStream input = null;
-        OutputStream output = null;
-        try {
-            input = new FileInputStream(source);
-            output = new FileOutputStream(dest);
+
+    public static void copyFileUsingFileStreams(File source, File dest) throws IOException {
+        try (InputStream input = new FileInputStream(source);
+             OutputStream output = new FileOutputStream(dest);) {
+
             byte[] buf = new byte[1024];
             int bytesRead;
             while ((bytesRead = input.read(buf)) > 0) {
                 output.write(buf, 0, bytesRead);
             }
-        } finally {
-            input.close();
-            output.close();
         }
     }
-    public static String[] readFileByLine(File file){
-        List<String> result=new ArrayList<>();
+
+    public static String[] readFileByLine(File file) {
+        List<String> result = new ArrayList<>();
         try (FileInputStream inputStream = new FileInputStream(file);
-             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream)))
-        {
+             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
             String str = null;
             while ((str = bufferedReader.readLine()) != null) {
                 result.add(str);
@@ -107,6 +97,7 @@ public class FileUtils {
     }
 
     public static void clearInfoForFile(File file) throws IOException {
+        mkdirParentPath(file);
         if (!file.exists()) {
             file.createNewFile();
         }
@@ -116,6 +107,9 @@ public class FileUtils {
         fileWriter.close();
     }
 
+    public static void main(String[] args) throws Exception{
+        clearInfoForFile("/dw/etl/home/dev/sander/dw_clsfd.stm_dw_clsfd_user_upd_ca_adpo_hd10/scp/dw_clsfd.stm_dw_clsfd_user_upd_ca_adpo_hd10_stt.sql.seq");
+    }
     public static String[] getFilePath(String app, String type) {
         Calendar instance = Calendar.getInstance();
         int year = instance.get(Calendar.YEAR);
