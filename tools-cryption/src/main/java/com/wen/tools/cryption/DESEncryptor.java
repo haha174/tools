@@ -1,101 +1,76 @@
 package com.wen.tools.cryption;
 
-
-import com.wen.tools.domain.utils.PropertiesUtil;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
-
+import com.wen.tools.domain.utils.ParameterUtils;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
-import java.security.SecureRandom;
-import java.util.Properties;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
-@SuppressWarnings("restriction")
 public class DESEncryptor {
-  private final static Properties properties=new PropertiesUtil().getProperties("encryptor.properties");
-  private final static String DES = properties.getProperty("DES");
-  private final static String SECRETKEY =  properties.getProperty("SECRETKEY");
-  //"LJOjdffjds*9jodfw3792jJJJNldsafasdfnsfeQEJOFdfcxdfewEOJRJJ=%&*25Bl";
+    private static final ParameterUtils properties;
 
-  /**
-   * 加密
-   *
-   * @param text
-   * @return
-   */
-  public static String encrypt(String text) {
-    return encrypt(text, SECRETKEY);
-  }
+    private static final String DES_ALGORITHM = "DES";
 
-  /**
-   * 解密
-   *
-   * @param encryptedText
-   * @return
-   */
-  public static String decrypt(String encryptedText) {
-    return decrypt(encryptedText, SECRETKEY);
-  }
-
-  public static String encrypt(String text, String key) {
-    try {
-      byte[] input = encrypt(text.getBytes(), key.getBytes());
-      String secret = new BASE64Encoder().encode(input);
-      return secret;
-    } catch (Exception e) {
-      e.printStackTrace();
+    static {
+        try {
+            properties = ParameterUtils.fromPropertiesFile("encryptor.properties");
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
-    return text;
-  }
 
-  public static String decrypt(String text, String key) {
-    if (text == null)
-      return null;
-    BASE64Decoder decoder = new BASE64Decoder();
-    try {
-      byte[] input = decoder.decodeBuffer(text);
-      byte[] secret = decrypt(input, key.getBytes());
-      return new String(secret);
-    } catch (Exception e) {
-      e.printStackTrace();
+    private static final String SECRETKEY = properties.get("SECRETKEY");
 
+    public static String encrypt(String text) {
+        try {
+            return encrypt(text, SECRETKEY);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-    return text;
-  }
 
-  private static byte[] encrypt(byte[] text, byte[] key) throws Exception {
-    SecureRandom random = new SecureRandom();
-    DESKeySpec spec = new DESKeySpec(key);
-    SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(DES);
-    SecretKey secretKey = secretKeyFactory.generateSecret(spec);
-    Cipher cipher = Cipher.getInstance(DES);
-    cipher.init(Cipher.ENCRYPT_MODE, secretKey, random);
-    return cipher.doFinal(text);
-  }
+    public static String decrypt(String encryptedText) {
+        try {
+            return decrypt(encryptedText, SECRETKEY);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-  private static byte[] decrypt(byte[] data, byte[] key) throws Exception {
-    SecureRandom random = new SecureRandom();
-    DESKeySpec spec = new DESKeySpec(key);
-    SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(DES);
-    SecretKey secretKey = secretKeyFactory.generateSecret(spec);
-    Cipher cipher = Cipher.getInstance(DES);
-    cipher.init(Cipher.DECRYPT_MODE, secretKey, random);
-    return cipher.doFinal(data);
-  }
+    private static SecretKey generateKey(String secretKey) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException {
+        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(DES_ALGORITHM);
+        DESKeySpec keySpec = new DESKeySpec(secretKey.getBytes());
+        keyFactory.generateSecret(keySpec);
+        return keyFactory.generateSecret(keySpec);
+    }
 
-  public static void main(String[] args) throws Exception {
-//    String text = "1qaz@WSX4";
-//    if(args.length>0)text = args[0];
-//    System.err.println(encrypt(text, SECRETKEY));
-//    System.err.println(decrypt(encrypt(text, SECRETKEY), SECRETKEY));
-//
-//    String psw = "KGpeDNizItkA8SM4q+C7yA==";
-//    System.out.println(decrypt(psw, SECRETKEY));
-//    System.err.println(encrypt("Thinkpad3", SECRETKEY));
-    System.err.println(encrypt("welcome_1911", SECRETKEY));
+    public static String encrypt(String content, String secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(DES_ALGORITHM);
+        cipher.init(1, generateKey(secretKey));
+        byte[] byte_encode = content.getBytes();
+        byte[] byte_AES = cipher.doFinal(byte_encode);
+        return new String((new BASE64Encoder()).encode(byte_AES));
+    }
 
-    //  System.out.println(decrypt("welcome_1911"));
-  }
+    public static String decrypt(String content, String secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
+        Cipher cipher = Cipher.getInstance(DES_ALGORITHM);
+        cipher.init(2, generateKey(secretKey));
+        byte[] byte_content = (new BASE64Decoder()).decodeBuffer(content);
+        byte[] byte_decode = cipher.doFinal(byte_content);
+        return new String(byte_decode);
+    }
+
+    public static void main(String[] args) throws Exception {
+        System.err.println(encrypt("welcome_1911", SECRETKEY));
+    }
 }

@@ -12,13 +12,22 @@
     <artifactId>tools-pool</artifactId>
 
     <dependencies>
-
-
         <dependency>
             <groupId>com.wen.tools</groupId>
             <artifactId>tools-domain</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${tools.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.wen.tools</groupId>
+            <artifactId>tools-logger</artifactId>
+            <version>${tools.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.wen.tools</groupId>
+            <artifactId>tools-cryption</artifactId>
+            <version>${tools.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>

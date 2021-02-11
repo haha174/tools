@@ -57,13 +57,13 @@ public final class JsonObject extends JSONObject {
     }
 
     public String toJson() {
-        return JSON.toJSONString(super.toJSONString());
+        return super.toJSONString();
     }
 
     public Map<String, Object> toMap() {
         return super.getInnerMap();
     }
-
+    @Override
     public String toString() {
         return this.toJson();
     }
